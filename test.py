@@ -182,8 +182,8 @@ def shift_cell(b,x,y,direction_x , direction_y):
 				b[x + direction_x][y+direction_y] = \
 					b[x + direction_x][y+direction_y] + cell_to_move
 				b[x][y] = 0
-				print "ADD"
-				print_board(board)
+#				print "ADD"
+#				print_board(board)
 			else:
 				return False
 		else:
@@ -191,8 +191,8 @@ def shift_cell(b,x,y,direction_x , direction_y):
 			# 移動
 			b[x + direction_x][y+direction_y] = cell_to_move
 			b[x][y] = 0
-			print "SHIFT"
-			print_board(board)
+#			print "SHIFT"
+#			print_board(board)
 			#移動したセルで再度判定
 			shift_cell(b,x+direction_x,y+direction_y,direction_x,direction_y)
 	
@@ -200,46 +200,63 @@ def shift_cell(b,x,y,direction_x , direction_y):
 
 
 def move_x_plus(board):
+	count = 0
 	# x軸プラス方向に動かす
 	for y in range(Y_MAX):
 		for x in range(X_MAX):
 			if shift_cell(board, X_MAX - x - 1 , y , 1 , 0) == True:
 #			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-				print "SHIFT_RESULT"
-				print_board(board)
+#				print "SHIFT_RESULT"
+#				print_board(board)
+				count = count + 1
+				pass
+	return count
 
 def move_x_minus(board):
+	count = 0
 	# x軸マイナス方向に動かす
 	for y in range(Y_MAX):
 		for x in range(X_MAX):
 			if shift_cell(board, x , y , -1 , 0) == True:
 #			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-				print "SHIFT_RESULT"
-				print_board(board)
+#				print "SHIFT_RESULT"
+#				print_board(board)
+				count = count + 1
+				pass
+	return count
 
 def move_y_plus(board):
+	count = 0
 	# x軸プラス方向に動かす
 	for x in range(X_MAX):
 		for y in range(Y_MAX):
 			if shift_cell(board, x , Y_MAX - y - 1 , 0 , 1) == True:
 #			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-				print "SHIFT_RESULT"
-				print_board(board)
+#				print "SHIFT_RESULT"
+#				print_board(board)
+				count = count + 1
+				pass
+	return count
 
 
 def move_y_minus(board):
+	count = 0
 	# x軸マイナス方向に動かす
 	for x in range(X_MAX):
 		for y in range(Y_MAX):
 			if shift_cell(board, x , y , 0 , -1) == True:
 #			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-				print "SHIFT_RESULT"
-				print_board(board)
+#				print "SHIFT_RESULT"
+#				print_board(board)
+				count = count + 1
+				pass
+	return count
 
 # main
 
-for i in range(100):
-	print "MOVE:" , i	
+move_count = 0
+does_quit = 0
+while True:
 
 	empty_count = search_empty_cells(board)
 	#print empty_count
@@ -248,10 +265,50 @@ for i in range(100):
 		print "ERR: no more cells"
 		break
 	#
-	print "PUT"
-	print_board(board)
 
-	move_x_plus(board)
+	
+	
+	while True:
+		print "MOVE:" , move_count	
+		print_board(board)
+		print "KEY: awsd or q"
+		key = raw_input()
+		if key == 'a':
+			c = move_y_minus(board)
+			if c > 0:
+				break
+			else:
+				print "no move"
+		elif key == 'd':
+			c = move_y_plus(board)
+			if c > 0:
+				break
+			else:
+				print "no move"
+		elif key == 'w':
+			c = move_x_minus(board)
+			if c > 0:
+				break
+			else:
+				print "no move"
+		elif key == 's':
+			c = move_x_plus(board)
+			if c > 0:
+				break
+			else:
+				print "no move"
+		elif key == 'q':
+			print "QUIT: total move:" , move_count
+			does_quit = 1
+			break
+		else:
+			print "WRONG key"
+			pass
 			
+	if does_quit > 0:
+		break
+	else:
+		# loop
+		move_count = move_count + 1
 
-print "OH!"
+
