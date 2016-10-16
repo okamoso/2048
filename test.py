@@ -3,7 +3,7 @@
 #
 
 import random
-
+import copy
 
 X_MAX = 4
 Y_MAX = 4
@@ -252,6 +252,22 @@ def move_y_minus(board):
 				pass
 	return count
 
+#動かせるかどうかチェック
+def test_can_move(b):
+	test_board = copy.deepcopy(b)
+	if move_x_plus(test_board) > 0:
+		return True
+	elif move_x_minus(test_board) > 0:
+		return True
+	elif move_y_plus(test_board) > 0:
+		return True
+	elif move_y_minus(test_board) > 0:
+		return True
+	else:
+		#no move
+		pass
+	return False
+	
 # main
 
 move_count = 0
@@ -266,7 +282,11 @@ while True:
 		break
 	#
 
-	
+	if test_can_move(board) :
+		pass
+	else:
+		print "no more move"
+		break
 	
 	while True:
 		print "MOVE:" , move_count	
