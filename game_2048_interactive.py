@@ -20,7 +20,8 @@ print "---------------------------------"
 print board
 print "---------------------------------"
 
-# ボードの中で空きのマスを探す
+# ボードの中で空きのセルを探す
+# >0 :  空きセルの数を返す
 # 0 : 空きなし
 def search_empty_cells(b):
 	count = 0
@@ -61,73 +62,16 @@ def put_another_board(b):
 					count = count + 1
 					if count == next_cell:
 						b[x][y] = INITIAL_CELL
+						return True
 	# print b
 	return True
 
-
-# 数値を移動させる
-# 
-# b: board
-# direction: 向き (0-3)
-# 0 : 上 ↑
-# 1 : 右 →　
-# 2 : 下 ↓
-# 3 : 左 ←
-def shift_board(b,directrion):
-	# TODO: ロジック考え中
-	return True
-
-
-def shift_right(b):
-	#試しに右移動をやってみる
-	# 再帰的にやるのが楽かなー
-	# 一番右端じゃなかったら、
-	# すぐ隣のセルが空いているかを確認して
-	# 空いてたら、すぐ右に移動
-	# 
-	return True
-
-# x,yのセルをシフトする
-# 再帰で最後までシフト
-# 成功したらtrue
-def shift_cell_right(b,x,y):
-
-	#右端じゃなかったらFalse
-	cell_to_move = b[x][y]
-
-	if x >= X_MAX - 1:
-		return False
-	elif b[x][y] == 0:
-		#空きセルには何もしない
-		return False
-	else:
-		# すぐ右のセルが空でなかったらFalse
-		if b[x + 1][y] != 0:
-			# すぐ右のセルが自分のセルと同じ値
-			if b[x + 1][y] == cell_to_move:
-				# 値を加算
-				b[x + 1][y] = b[x + 1][y] + cell_to_move
-				b[x][y] = 0
-				print "ADD"
-				print_board(board)
-			else:
-				return False
-		else:
-			# すぐ右のセルが空の場合
-			#右に移動
-			b[x+1][y] = cell_to_move
-			b[x][y] = 0
-			print "SHIFT"
-			print_board(board)
-			#右に移動したセルで再度判定
-			shift_cell_right(b,x+1,y)
 	
-	
-	return True
-	
+# １つのセルの値を特定方向に移動
 # direction_xがx方向 (1:プラス方向 -1:マイナス方向)
 # direction_yがy方向 (1:プラス方向 -1:マイナス方向)
-
+#戻り値 True:動かした 
+#      False:動かせなかった / 空のセル
 def shift_cell(b,x,y,direction_x , direction_y):
 
 	#direction_*の一応引数チェック(どちらかが1 or -1で他が0)
@@ -138,14 +82,12 @@ def shift_cell(b,x,y,direction_x , direction_y):
 		# ok
 		pass
 	else:
+		#ここには来ないはず
 		print "ERROR:" , direction_x , direction_y
 		raise Exception
 	
+	#自身のセルの値
 	cell_to_move = b[x][y]
-
-	#右端じゃなかったらFalse
-
-	# x方向の場合
 
 	# 端っこであるかの判定
 	if direction_x == 1:
@@ -165,29 +107,36 @@ def shift_cell(b,x,y,direction_x , direction_y):
 			return False
 		pass
 	else:
+		#ここには来ないはず
 		print "ERROR:" , direction_x , direction_y
 		raise Exception
 		#何もしない
 			
 	if b[x][y] == 0:
-		#空きセルには何もしない
+		#自身が空きセルの場合には何もしない
 		return False
 	else:
-		# 動かす方向のセルが空でなかったらFalse
-		if b[x + direction_x][y+direction_y] != 0:
+		# 移動先のセルが正の値の場合、加算のチェックを実施
+		if b[x + direction_x][y+direction_y] > 0:
 		
-			# すぐ右のセルが自分のセルと同じ値
+			# 移動先のセルが自分のセルと同じ値
 			if b[x + direction_x][y+direction_y] == cell_to_move:
 				# 値を加算
 				b[x + direction_x][y+direction_y] = \
 					b[x + direction_x][y+direction_y] + cell_to_move
+				# 同一ターンで2回加算されないように一度マイナスの値にしている
+				# 最後にマイナス→プラスに戻すことを前提
+				b[x + direction_x][y+direction_y] *= -1
 				b[x][y] = 0
 #				print "ADD"
 #				print_board(board)
+				return True
+
 			else:
+				#動かせない
 				return False
-		else:
-			# 動かす方向のセルが空の場合
+		elif b[x + direction_x][y+direction_y] == 0:
+			# 動かす方向のセルが空(0)の場合
 			# 移動
 			b[x + direction_x][y+direction_y] = cell_to_move
 			b[x][y] = 0
@@ -195,8 +144,22 @@ def shift_cell(b,x,y,direction_x , direction_y):
 #			print_board(board)
 			#移動したセルで再度判定
 			shift_cell(b,x+direction_x,y+direction_y,direction_x,direction_y)
+			return True
+		else:
+			#動かす方向のセルが負の値の場合
+			#一度加算されたセルのため、何もしない（動かせない)
+			return False
 	
+	#ここには来ないはずだけど一応
 	return True
+
+# ボード上のマイナスの値をプラスに戻す
+def flip_positive(b):
+	for y in range(Y_MAX):
+		for x in range(X_MAX):
+			if b[x][y] < 0:
+				b[x][y] *= -1
+
 
 
 def move_x_plus(board):
@@ -211,6 +174,7 @@ def move_x_plus(board):
 				count = count + 1
 				pass
 	return count
+
 
 def move_x_minus(board):
 	count = 0
@@ -273,7 +237,7 @@ def test_can_move(b):
 move_count = 0
 does_quit = 0
 while True:
-
+	flip_positive(board)
 	empty_count = search_empty_cells(board)
 	#print empty_count
 	
@@ -282,10 +246,13 @@ while True:
 		break
 	#
 
+	#動かせるかどうかチェック
+	#動かせるのがないと終了
 	if test_can_move(board) :
 		pass
 	else:
 		print "no more move"
+		print_board(board)
 		break
 	
 	while True:
@@ -330,5 +297,8 @@ while True:
 	else:
 		# loop
 		move_count = move_count + 1
+
+#-------
+# 探索
 
 
