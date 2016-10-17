@@ -72,7 +72,15 @@ def put_another_board(b):
 # direction_yがy方向 (1:プラス方向 -1:マイナス方向)
 #戻り値 True:動かした 
 #      False:動かせなかった / 空のセル
+#評価のために戻り値を仕様変更
+# -1 : 移動できない or 空のセル
+#  0 : セルを移動したが、加算はしていない
+# >0 : 加算が発生したセルの数 (=1)
+# バグあるかも
 def shift_cell(b,x,y,direction_x , direction_y):
+	# 加算した数値の数
+	# このロジックだと2以上加算されないはずだけど一応カウントに。
+	add_count = 0
 
 	#direction_*の一応引数チェック(どちらかが1 or -1で他が0)
 	if direction_x**2 == 1 and direction_y == 0:
@@ -92,15 +100,15 @@ def shift_cell(b,x,y,direction_x , direction_y):
 	# 端っこであるかの判定
 	if direction_x == 1:
 		if x >= X_MAX - 1:
-			return False
+			return -1
 		pass
 	elif direction_x == -1:
 		if x <= 0:
-			return False
+			return -1
 		pass
 	elif direction_y == 1:
 		if y >= Y_MAX - 1:
-			return False
+			return -1
 		pass
 	elif direction_y == -1:
 		if y <= 0:
@@ -114,7 +122,7 @@ def shift_cell(b,x,y,direction_x , direction_y):
 			
 	if b[x][y] == 0:
 		#自身が空きセルの場合には何もしない
-		return False
+		return -1
 	else:
 		# 移動先のセルが正の値の場合、加算のチェックを実施
 		if b[x + direction_x][y+direction_y] > 0:
@@ -124,17 +132,18 @@ def shift_cell(b,x,y,direction_x , direction_y):
 				# 値を加算
 				b[x + direction_x][y+direction_y] = \
 					b[x + direction_x][y+direction_y] + cell_to_move
+				add_count += 1
 				# 同一ターンで2回加算されないように一度マイナスの値にしている
 				# 最後にマイナス→プラスに戻すことを前提
 				b[x + direction_x][y+direction_y] *= -1
 				b[x][y] = 0
 #				print "ADD"
 #				print_board(board)
-				return True
+				return add_count
 
 			else:
 				#動かせない
-				return False
+				return -1
 		elif b[x + direction_x][y+direction_y] == 0:
 			# 動かす方向のセルが空(0)の場合
 			# 移動
@@ -143,15 +152,18 @@ def shift_cell(b,x,y,direction_x , direction_y):
 #			print "SHIFT"
 #			print_board(board)
 			#移動したセルで再度判定
-			shift_cell(b,x+direction_x,y+direction_y,direction_x,direction_y)
-			return True
+			if shift_cell(b,x+direction_x,y+direction_y,direction_x,direction_y) > 0:
+				add_count = 1 #TODO:微妙
+				
+				
+			return add_count
 		else:
 			#動かす方向のセルが負の値の場合
 			#一度加算されたセルのため、何もしない（動かせない)
-			return False
+			return -1
 	
 	#ここには来ないはずだけど一応
-	return True
+	return add_count
 
 # ボード上のマイナスの値をプラスに戻す
 def flip_positive(b):
@@ -160,78 +172,122 @@ def flip_positive(b):
 			if b[x][y] < 0:
 				b[x][y] *= -1
 
-
-
+# 
+# -1 : 全く移動できない
+#  0 : 一つでも移動した
+# >0 : 加算したセルの数 (=1)
 def move_x_plus(board):
-	count = 0
+	add_count = 0 # 加算したセルの数
+	does_move = 0 # 加算or移動したセルの数 0のまま:移動してない
 	# x軸プラス方向に動かす
 	for y in range(Y_MAX):
 		for x in range(X_MAX):
-			if shift_cell(board, X_MAX - x - 1 , y , 1 , 0) == True:
-#			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-#				print "SHIFT_RESULT"
-#				print_board(board)
-				count = count + 1
+			a = shift_cell(board, X_MAX - x - 1 , y , 1 , 0)
+			if a > 0:
+				#加算あり
+				add_count += 1
+				does_move += 1
+			elif a == 0:
+				#移動のみ
+				does_move += 1
+			else:
 				pass
-	return count
+	
+	#移動
+	if does_move > 0:
+		return add_count
+	else:
+		return -1
 
 
 def move_x_minus(board):
-	count = 0
+	add_count = 0 # 加算したセルの数
+	does_move = 0 # 加算or移動したセルの数 0のまま:移動してない
 	# x軸マイナス方向に動かす
 	for y in range(Y_MAX):
 		for x in range(X_MAX):
-			if shift_cell(board, x , y , -1 , 0) == True:
-#			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-#				print "SHIFT_RESULT"
-#				print_board(board)
-				count = count + 1
+			a = shift_cell(board, x , y , -1 , 0)
+			if a > 0:
+				#加算あり
+				add_count += 1
+				does_move += 1
+			elif a == 0:
+				#移動のみ
+				does_move += 1
+			else:
 				pass
-	return count
+	
+	#移動
+	if does_move > 0:
+		return add_count
+	else:
+		return -1
 
 def move_y_plus(board):
-	count = 0
+	add_count = 0 # 加算したセルの数
+	does_move = 0 # 加算or移動したセルの数 0のまま:移動してない
 	# x軸プラス方向に動かす
 	for x in range(X_MAX):
 		for y in range(Y_MAX):
-			if shift_cell(board, x , Y_MAX - y - 1 , 0 , 1) == True:
-#			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-#				print "SHIFT_RESULT"
-#				print_board(board)
-				count = count + 1
+			a = shift_cell(board, x , Y_MAX - y - 1 , 0 , 1)
+			if a > 0:
+				#加算あり
+				add_count += 1
+				does_move += 1
+			elif a == 0:
+				#移動のみ
+				does_move += 1
+			else:
 				pass
-	return count
+	
+	#移動
+	if does_move > 0:
+		return add_count
+	else:
+		return -1
 
 
 def move_y_minus(board):
-	count = 0
+	add_count = 0 # 加算したセルの数
+	does_move = 0 # 加算or移動したセルの数 0のまま:移動してない
 	# x軸マイナス方向に動かす
 	for x in range(X_MAX):
 		for y in range(Y_MAX):
-			if shift_cell(board, x , y , 0 , -1) == True:
-#			if shift_cell_right(board, X_MAX - x - 1 , y) == True:
-#				print "SHIFT_RESULT"
-#				print_board(board)
-				count = count + 1
+			a = shift_cell(board, x , y , 0 , -1)
+			if a > 0:
+				#加算あり
+				add_count += 1
+				does_move += 1
+			elif a == 0:
+				#移動のみ
+				does_move += 1
+			else:
 				pass
-	return count
+	
+	#移動
+	if does_move > 0:
+		return add_count
+	else:
+		return -1
 
 #動かせるかどうかチェック
 def test_can_move(b):
 	test_board = copy.deepcopy(b)
-	if move_x_plus(test_board) > 0:
+	if move_x_plus(test_board) >= 0:
 		return True
-	elif move_x_minus(test_board) > 0:
+	elif move_x_minus(test_board) >= 0:
 		return True
-	elif move_y_plus(test_board) > 0:
+	elif move_y_plus(test_board) >= 0:
 		return True
-	elif move_y_minus(test_board) > 0:
+	elif move_y_minus(test_board) >= 0:
 		return True
 	else:
 		#no move
 		pass
 	return False
-	
+
+
+
 # main
 
 move_count = 0
@@ -262,25 +318,25 @@ while True:
 		key = raw_input()
 		if key == 'a':
 			c = move_y_minus(board)
-			if c > 0:
+			if c >= 0:
 				break
 			else:
 				print "no move"
 		elif key == 'd':
 			c = move_y_plus(board)
-			if c > 0:
+			if c >= 0:
 				break
 			else:
 				print "no move"
 		elif key == 'w':
 			c = move_x_minus(board)
-			if c > 0:
+			if c >= 0:
 				break
 			else:
 				print "no move"
 		elif key == 's':
 			c = move_x_plus(board)
-			if c > 0:
+			if c >= 0:
 				break
 			else:
 				print "no move"
