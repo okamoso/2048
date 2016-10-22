@@ -23,6 +23,7 @@ print "---------------------------------"
 # ボードの中で空きのセルを探す
 # >0 :  空きセルの数を返す
 # 0 : 空きなし
+#ボードの状態を変えない
 def search_empty_cells(b):
 	count = 0
 	for x in range(X_MAX):
@@ -33,6 +34,16 @@ def search_empty_cells(b):
 				count = count + 1			
 #	print count
 	return count
+
+#
+#
+def count_all_numbers(b):
+	counts = {}
+	for x in range(X_MAX):
+		for y in range(Y_MAX):
+			# print x, y
+			counts[b[x][y]] += 1
+	return counts
 
 # ボードを表示
 def print_board(b):
@@ -175,7 +186,7 @@ def flip_positive(b):
 # 
 # -1 : 全く移動できない
 #  0 : 一つでも移動した
-# >0 : 加算したセルの数 (=1)
+# >0 : 加算したセルの数
 def move_x_plus(board):
 	add_count = 0 # 加算したセルの数
 	does_move = 0 # 加算or移動したセルの数 0のまま:移動してない
@@ -271,6 +282,7 @@ def move_y_minus(board):
 		return -1
 
 #動かせるかどうかチェック
+#TODO:ボードの初期化が足りてないのでバグありそう
 def test_can_move(b):
 	test_board = copy.deepcopy(b)
 	if move_x_plus(test_board) >= 0:
@@ -286,6 +298,22 @@ def test_can_move(b):
 		pass
 	return False
 
+
+# 次の１手を決める
+def evaluate_next_1(b):	
+	test_board = copy.deepcopy(b)
+	xplus = move_x_plus(test_board)
+
+	test_board = copy.deepcopy(b)
+	xminus = move_x_minus(test_board)
+
+	test_board = copy.deepcopy(b)
+	yplus = move_y_plus(test_board)
+
+	test_board = copy.deepcopy(b)
+	yminus = move_y_minus(test_board)
+	
+	
 
 
 # main
