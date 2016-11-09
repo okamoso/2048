@@ -38,6 +38,7 @@ def print_board(b):
 	for x in range(X_MAX):
 		print b[x]
 
+#コメント		
 # ボードに１つ数値を置く
 # 置けたらtrue,置けなかったらfalse
 # 置く数値の値: INITIAL_CELL
